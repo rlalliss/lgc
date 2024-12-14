@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link href="https://api.optixapp.com/ui-kit/optix-ui-kit.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://api.optixapp.com/ui-kit/optix-ui-kit.min.js"></script>
+  </head>
+  <body>
+    <div id="app" class="optix-show-on-load">
+      <optix-app>
+        <optix-container>
+          <h2>This is a simple app</h2>
+          <p>{{ message }}</p>
+          <p>{{ apiMessage }}</p>
+        </optix-container>
+      </optix-app>
+    </div>
+    <!--Include your external files here or use script tag to avoid caching-->
+    <!--link href="myapp.min.css" rel="stylesheet"-->
+    <!--script type="text/javascript" src="myapp.min.js"></script-->
+    <script>
+      new Vue({
+        el: '#app',
+        data: {
+          message: '',
+          apiMessage: ''
+        },
+        mounted() {
+          this.$optix.init().then(() => {
+            this.message = 'Hello World! Loaded at ' + new Date();
+
+            this.$optix.graphQL(
+              `query me {
+                me {
+                  user {
+                    name
+                  }
+                }
+              }`)
+              .then(result => {
+                const response = result.data;
+                if (response.errors) {
+                  const errors = this.$_.map(response.errors, 'message');
+                  this.apiMessage = 'Request failed: ' + errors.join(', ');
+                  return;
+                }
+
+                this.apiMessage = 'Your name is ' + this.$_.get(response, 'data.me.user.name', 'Unknown');
+              });
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
